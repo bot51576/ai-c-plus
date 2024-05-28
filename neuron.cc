@@ -24,3 +24,29 @@ double Neuron::forward(const std::vector<double>& inputs) const {
     }
     return activation_(u);
 }
+
+std::vector<double> Neuron::backward(double output_error, const std::vector<double>& inputs) const {
+    // 入力値の数だけ勾配を計算
+    std::vector<double> gradients(inputs.size() + 1); // +1 for bias
+    
+    // 各入力値に対する勾配を計算
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        gradients[i] = output_error * inputs[i];
+    }
+
+    // バイアス項に対する勾配
+    gradients.back() = output_error; 
+
+    return gradients;
+}
+
+void Neuron::update_weights(const std::vector<double>& delta_weights) {
+    // 重みとバイアスの更新
+    for (size_t i = 0; i < weights_.size(); ++i) {
+        weights_[i] -= delta_weights[i]; // 学習率をかける処理は、上位のクラスで行う
+    }
+}
+
+const std::vector<double>& Neuron::get_weights() const{
+    return weights_;
+}

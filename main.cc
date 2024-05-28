@@ -1,40 +1,48 @@
-#include "./lib/matrix.hpp"
+#include <iostream>
+#include "network.hpp"
+#include "fully_connected_layer.hpp"
+#include <vector>
+#include <functional>
+#include "lib/functions.hpp"
 
 int main() {
-  // 行列のインスタンス化
-  Matrix mat1(2, 3);
-  mat1(0, 0) = 1; mat1(0, 1) = 2; mat1(0, 2) = 3;
-  mat1(1, 0) = 4; mat1(1, 1) = 5; mat1(1, 2) = 6;
+    // XORの学習データ
+    Matrix inputs(4, 2);
+    inputs(0, 0) = 0; inputs(0, 1) = 0;
+    inputs(1, 0) = 0; inputs(1, 1) = 1;
+    inputs(2, 0) = 1; inputs(2, 1) = 0;
+    inputs(3, 0) = 1; inputs(3, 1) = 1;
 
-  Matrix mat2(3, 2);
-  mat2(0, 0) = 7; mat2(0, 1) = 8;
-  mat2(1, 0) = 9; mat2(1, 1) = 10;
-  mat2(2, 0) = 11; mat2(2, 1) = 12;
+    Matrix targets(4, 1);
+    targets(0, 0) = 0;
+    targets(1, 0) = 1;
+    targets(2, 0) = 1;
+    targets(3, 0) = 0;
 
-  // 行列の加算
-  Matrix mat3 = mat1 + mat1;
-  std::cout << "mat1 + mat1:" << std::endl;
-  mat3.print();
+    // ニューラルネットワークの構築
+    Network network;
 
-  // 行列の減算
-  Matrix mat4 = mat1 - mat1;
-  std::cout << "mat1 - mat1:" << std::endl;
-  mat4.print();
+    // 第1層 (隠れ層): 入力2ノード、出力2ノード
+    std::cout << "Done First Layer" << std::endl;
+    Sigmoid sigmoid; 
+    FullyConnectedLayer layer1(2, 4);
+    layer1.set_activation((std::bind(&Sigmoid::forward, &sigmoid, std::placeholders::_1))); // 活性化関数にシグモイド関数
+    network.add_layer(layer1);
 
-  // 行列の乗算
-  Matrix mat5 = mat1 * mat2;
-  std::cout << "mat1 * mat2:" << std::endl;
-  mat5.print();
+    // 第2層 (出力層): 入力2ノード、出力1ノード
+    FullyConnectedLayer layer2(4, 1);
+    layer2.set_activation((std::bind(&Sigmoid::forward, &sigmoid, std::placeholders::_1))); // 活性化関数にシグモイド関数
+    network.add_layer(layer2);
 
-  // スカラー倍
-  Matrix mat6 = mat1 * 2.0;
-  std::cout << "mat1 * 2.0:" << std::endl;
-  mat6.print();
+    // 学習
+    double learning_rate = 0.1;
+    size_t epochs = 10000;
+    network.train(inputs, targets, learning_rate, epochs);
 
-  //要素ごとの積
-  Matrix mat7 = mat1.hadamard_product(mat1);
-  std::cout << "mat1 @ mat1:" << std::endl;
-  mat7.print();
+    // 学習結果の確認
+    std::cout << "学習後の予測結果:" << std::endl;
+    Matrix predictions = network.predict(inputs);
+    predictions.print();
 
-  return 0;
+    return 0;
 }
